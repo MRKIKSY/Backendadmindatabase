@@ -2,7 +2,5 @@
 # Dependencies
 node_modules/
 
-
-# Environment variables
+# Ignore environment variables
 .env
-.env.local

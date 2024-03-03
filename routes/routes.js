@@ -3,6 +3,9 @@ const User = require('../models/user');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware'); 
+
+
 
 
 router.post("/signup", async (req, res) => {
@@ -96,7 +99,7 @@ router.get('/:id', async (req, res) => {
 
 
 // Update a User by id
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!user) {
@@ -109,7 +112,7 @@ router.patch('/:id', async (req, res) => {
 });
 
 // Delete a User by id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
