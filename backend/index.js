@@ -25,9 +25,9 @@ mongoose
 
 // Root route
 app.get("/", (req, res) => {
-  res.setHeader("Content-Type", "text/html");
-  res.send("<h1>Hello World!</h1>");
+  res.send("Welcome to my API!");
 });
+
 
 
 // User routes
