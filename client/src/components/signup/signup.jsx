@@ -19,7 +19,7 @@ const SignUp = () => {
         };
 
         try {
-            const response = await Axios.post("https://restfulapi-ohsg.onrender.com/api/users/signup", userData);
+            const response = await Axios.post("http://localhost:3002/api/users/signup", userData);
             if (response.data.token || response.status === 201) { 
                 setRegisterStatus("ACCOUNT CREATED SUCCESSFULLY");
                 setTimeout(() => {
