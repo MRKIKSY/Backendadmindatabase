@@ -25,8 +25,10 @@ mongoose
 
 // Root route
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.setHeader("Content-Type", "text/html");
+  res.send("<h1>Hello World!</h1>");
 });
+
 
 // User routes
 app.use("/api/users", userRoutes);
