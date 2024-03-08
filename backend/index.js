@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const userRoutes = require("./routes/routes");
+const port = process.env.PORT || 4000;
 
 const app = express();
 dotenv.config();
@@ -27,9 +28,13 @@ mongoose
 // Handle OPTIONS preflight request
 app.options('*', cors());
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
-app.listen(3002, () => {
-  console.log(`Server Started at ${3002}`);
+
+app.listen(port, () => {
+  console.log(`Server Started at ${port}`);
 });
 
 
