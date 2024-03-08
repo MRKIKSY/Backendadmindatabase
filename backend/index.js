@@ -25,8 +25,12 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB:", err));
 
 
-// Handle OPTIONS preflight request
-app.options('*', cors());
+// Configure CORS
+app.use(
+  cors({
+    origin: "http://mrkiksycrm.cloud",
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
