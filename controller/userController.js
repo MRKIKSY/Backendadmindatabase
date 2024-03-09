@@ -1,43 +1,36 @@
-const User = require("../models/user");
+const express = require('express');
+const User = require('../models/user'); 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware'); 
 
-exports.signup = async (req, res) => {
-  const { name, email, password } = req.body;
 
-  let existingUser = await User.findOne({ email: email });
-  if (existingUser) return res.status(400).send("User already exists.");
 
+
+router.post("/signup", async (req, res) => {
   try {
-    const hashedPassword = await bcrypt.hash(password, 8);
-
+    // Hash the user's password
+    const hashedPassword = await bcrypt.hash(req.body.password, 8);
     const user = new User({
-      name,
-      email,
-      password: hashedPassword,
+      ...req.body,
+      password: hashedPassword, // Use the hashed password
     });
-
     await user.save();
 
+    // Sign the JWT with the user's ID and your secret
     const token = jwt.sign(
       { _id: user._id.toString() },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      process.env.JWT_SECRET
     );
-
-    res.status(201).send({
-      user: {
-        name: user.name,
-        email: user.email,
-      },
-      token,
-    });
+    res.status(201).send({ user, token });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send(error);
   }
-};
+});
 
-exports.login = async (req, res) => {
+// Login route
+router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
@@ -51,45 +44,64 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { _id: user._id.toString() },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      process.env.JWT_SECRET
     );
     res.send({ user, token });
   } catch (error) {
     res.status(400).send(error);
   }
-};
+});
 
-exports.getAllUsers = async (req, res) => {
+
+
+router.post("/", async (req, res) => {
+  const { name, email, password, address, salary } = req.body;
+  const user = new User({
+    name,
+    email,
+    password,
+    address,
+    salary,
+  });
+
+  try {
+    const savedUser = await user.save();
+    res.status(201).send(savedUser);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+
+// Get all Users
+router.get('/', async (req, res) => {
   try {
     const users = await User.find();
     res.status(200).send(users);
   } catch (error) {
     res.status(500).send(error);
   }
-};
+});
 
-exports.getUserById = async (req, res) => {
+
+// Get a single User by id
+router.get('/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).send();
     }
-    res.status(200).send({
-      status: "Success",
-      message: "User fetched successfully",
-      data: user,
-    });
+    res.status(200).send(user);
   } catch (error) {
     res.status(500).send(error);
   }
-};
+});
 
-exports.updateUserById = async (req, res) => {
+
+// Update a User by id
+router.patch('/:id', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!user) {
       return res.status(404).send();
     }
@@ -97,9 +109,10 @@ exports.updateUserById = async (req, res) => {
   } catch (error) {
     res.status(400).send(error);
   }
-};
+});
 
-exports.deleteUserById = async (req, res) => {
+// Delete a User by id
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
@@ -109,4 +122,9 @@ exports.deleteUserById = async (req, res) => {
   } catch (error) {
     res.status(500).send(error);
   }
-};
+});
+
+
+
+
+module.exports = router;
