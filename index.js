@@ -12,8 +12,10 @@ dotenv.config();
 app.use(express.json());
 app.use(
   cors({
-    // origin: "http://mrkiksycrm.cloud",
-   origin: "http://localhost:5173"
+    origin: [
+      "http://mrkiksycrm.cloud", 
+      "http://localhost:5173",
+    ]
   })
 );
 
