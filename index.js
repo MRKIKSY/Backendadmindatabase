@@ -24,7 +24,12 @@ mongoose
   .then(() => console.log("Connected successfully to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB:", err));
 
-app.listen(PORT, () => {
+
+app.get('/', (req, res) => {
+  res.send("hello world");
+}) 
+app.listen(PORT,
+  () => {
   console.log(`Server Started at ${PORT}`);
 });
 
