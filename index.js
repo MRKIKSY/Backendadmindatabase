@@ -15,7 +15,8 @@ app.use(
     origin: [
       "http://mrkiksycrm.cloud", 
       "http://localhost:5173",
-    ]
+    ],
+    credentials: true,
   })
 );
 
