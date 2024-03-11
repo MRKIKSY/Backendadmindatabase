@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
-// const userRoutes = require("./routes/routes");
 const userRoutes = require("./controller/userController");
 
 const PORT = process.env.PORT || 4000;
@@ -12,13 +11,12 @@ dotenv.config();
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "http://mrkiksycrm.cloud", 
-      "http://localhost:5173",
-    ],
-    credentials: true,
+    origin: ["https://mrkiksycrm.cloud", "http://localhost:5173"],
+    credentials: true, 
+    methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"], 
   })
 );
+
 
 // Connect to database
 const db = process.env.MONGODB_URL;
