@@ -2,98 +2,102 @@ const express = require('express');
 const User = require('../models/user'); 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware'); 
 
 
 
-
-router.post("/", async (req, res) => {
+exports.getAllUsers = async (req, res) => {
   try {
-    // Hash the user's password
-    const hashedPassword = await bcrypt.hash(req.body.password, 8);
-    const user = new User({
-      ...req.body,
-      password: hashedPassword, // Use the hashed password
+    const users = await User.find();
+    res.json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getUserById = async (req, res) => {
+  const userId = req.params.id; // Ensure this matches your route parameter
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.registerUser = async (req, res) => {
+  const { name, email, password } = req.body;
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email is already taken" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, email, password: hashedPassword });
+    await newUser.save();
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    res
+      .status(200)
+      .json({ message: "Login successful", token, email: user.email });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.updateUserById = async (req, res) => {
+  const userId = req.params.id;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+      new: true,
     });
-    await user.save();
-
-    // Sign the JWT with the user's ID and your secret
-    const token = jwt.sign(
-      { _id: user._id.toString() },
-      process.env.JWT_SECRET
-    );
-    res.status(201).send({ user, token });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ message: "User updated successfully", updatedUser });
   } catch (error) {
-    res.status(400).send(error);
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-});
+};
 
-// Login route
-router.post("/", async (req, res) => {
+exports.deleteUserById = async (req, res) => {
+  const userId = req.params.id;
   try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(400).send("Unable to login");
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
     }
-
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
-    if (!isMatch) {
-      return res.status(400).send("Unable to login");
-    }
-
-    const token = jwt.sign(
-      { _id: user._id.toString() },
-      process.env.JWT_SECRET
-    );
-    res.send({ user, token });
+    res.json({ message: "User deleted successfully", deletedUser });
   } catch (error) {
-    res.status(400).send(error);
+    console.error(error);
+    res.status(500).json({ message: "Internal Server Error" });
   }
-});
-
-
-// Get all Users
-// router.get('/', async (req, res) => {
-//   try {
-//     const users = await User.find();
-//     res.status(200).send(users);
-//   } catch (error) {
-//     res.status(500).send(error);
-//   }
-// });
-
-
-// Get a single User by id
-router.get('/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).send();
-    }
-    res.status(200).send(user);
-  } catch (error) {
-    res.status(500).send(error);
-  }
-});
-
-
-// Update a User by id
-router.patch('/:id', authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!user) {
-      return res.status(404).send();
-    }
-    res.status(200).send(user);
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
+};
 
 
 
 
-
-
-module.exports = router;
