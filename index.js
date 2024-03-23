@@ -11,7 +11,7 @@ dotenv.config();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://mrkiksycrm.cloud", "http://localhost:5173", "http://localhost:3001"],
+    origin: ["https://frontendadmindatbase.onrender.com/", "http://localhost:5173", "http://localhost:3001"],
     credentials: true, 
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"], 
   })
